@@ -6,6 +6,8 @@
 #include "FaceDetect.h"
 #include "Util.h"
 #include <signal.h>
+#include <thread>
+#include <chrono>
 #include "Matrix.h"
 #include "HzellerRpiMatrix.h"
 
@@ -17,7 +19,7 @@ typedef enum {
 #define WIDTH 64*3
 #define HEIGHT 32*3
 #define PAL_SIZE 1<<12 // #colors in the gradient of each palette
-#define FPS 50
+#define FPS 20
 #define START_DRAWER "Bzr"
 #define DRAWER_CHANGE_INTERVAL 20000
 #define LAYOUT_LEFT_TO_RIGHT false
@@ -34,9 +36,7 @@ static bool interrupted = false;
 
 void sigHandler(int sig) {
     cout << "Caught SIGINT\n";
-	// controller->stop();
     interrupted = true;
-	fail();
 }
 
 int main(int argc, char** argv) {
@@ -46,21 +46,21 @@ int main(int argc, char** argv) {
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, NULL);
 
-	string device = argc >= 2 ? argv[1] : "";
+    string device = argc >= 2 ? argv[1] : "";
     
     string startDrawer = argc >= 3 ? argv[2] : START_DRAWER;
     int drawerChangeInterval = argc >= 4 ? atoi(argv[3]) : DRAWER_CHANGE_INTERVAL;
     int cameraFps = argc >= 5 ? atoi(argv[4]) : CAMERA_FPS;
     float facedetectFps = argc >= 6 ? atof(argv[5]) : FACEDETECT_FPS;
 
-	// start camera
+    // start camera
     Camera *camera = NULL;
     if (cameraFps > 0) {
         camera = new Camera(CAMERA_WIDTH, CAMERA_HEIGHT);
         camera->start(1000 / cameraFps);
     }
 
-	// start face detection
+    // start face detection
     FaceDetect *faceDetect = NULL;
     if (facedetectFps > 0 && camera != NULL) {
         faceDetect = new FaceDetect(camera);
@@ -78,41 +78,43 @@ int main(int argc, char** argv) {
             break;
     }
 
-	controller = new Controller(matrix, WIDTH, HEIGHT, PAL_SIZE, 
-		baseColors, BASE_COLORS_SIZE, BASE_COLORS_PER_PALETTE,
+    controller = new Controller(matrix, WIDTH, HEIGHT, PAL_SIZE, 
+        baseColors, BASE_COLORS_SIZE, BASE_COLORS_PER_PALETTE,
         LAYOUT_LEFT_TO_RIGHT, startDrawer, drawerChangeInterval,
         camera, faceDetect);
-	// controller->start(1000 / FPS);
+    // controller->start(1000 / FPS);
 
     signal(SIGINT, sigHandler);
     signal(SIGKILL, sigHandler);
 
+    std::chrono::milliseconds sleepMs{5};
     uint32_t lastUpdateTime = 0;
     while(!interrupted) {
-        auto now = steady_clock::now().time_since_epoch().count();
+        auto now = duration_cast<std::chrono::milliseconds>(steady_clock::now().time_since_epoch()).count();
         if (now - lastUpdateTime > 1000 / FPS) {
             controller->loop();
             lastUpdateTime = now;
         }
+        std::this_thread::sleep_for(sleepMs);
     }
 
     std::cout << "Interrupted by signal\n";
 
-	// save images to disk at recurring interval
+    // save images to disk at recurring interval
 // #if UPDATE_IMAGE_FPS > 0
 //     size_t rawDataSize;
 //     GenImage genImage(WIDTH, HEIGHT, "public/image.png", controller->rawData(rawDataSize));
 //     genImage.start(1000 / updateImageFps);
 // #endif
 
-	//start_webserver();
+    //start_webserver();
 
-	// allow accepting websocket requests from client app
+    // allow accepting websocket requests from client app
 
     // int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     // assert(r == 0);
 
     delete matrix;
-	delete controller;
+    delete controller;
     return 0;
 }
