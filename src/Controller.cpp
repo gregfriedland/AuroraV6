@@ -29,9 +29,6 @@ ControllerSettings::ControllerSettings(const std::string& configFilename) {
         m_palSize = j["paletteSize"];
         m_fps = j["fps"];
         m_startDrawerName = j["startDrawer"];
-        for (auto& d: j["drawers"]) {
-            m_drawers.push_back(d);
-        }
         m_drawerChangeInterval = j["drawerChangeInterval"];
         m_faceDetectFps = j["faceDetection"]["fps"];
         m_faceVideoDrawerTimeout = j["faceDetection"]["videoDrawerTimeout"];
@@ -161,17 +158,15 @@ void Controller::loop(int interval) {
             if (m_currDrawer->name().compare("Video") == 0)
                 randomizeSettings(m_currDrawer);
             else
-                changeDrawer(m_settings.m_drawers);
+                changeDrawer({"GrayScott", "Bzr", "AlienBlob"});
         }
     } else if (m_camera != NULL) {
         if (m_drawerChangeTimer.tick(NULL)) {
-            auto drawers = m_settings.m_drawers;
-            drawers.push_back("Video");
-	        changeDrawer(drawers);
+	  changeDrawer({"GrayScott", "Bzr", "AlienBlob", "Video"});
         }
     } else {
         if (m_drawerChangeTimer.tick(NULL)) {
-            changeDrawer(m_settings.m_drawers);
+            changeDrawer({"GrayScott", "Bzr", "AlienBlob"});
         }
     }
 
