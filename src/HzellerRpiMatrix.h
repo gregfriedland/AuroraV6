@@ -14,14 +14,16 @@ using namespace rgb_matrix;
 class HzellerRpiMatrix : public Matrix {
  public:
  HzellerRpiMatrix(size_t width, size_t height) : Matrix(width, height) {
-    RGBMatrix::Options options;
     RuntimeOptions runtime;
+    runtime.gpio_slowdown = 2;
     
+    RGBMatrix::Options options;
     options.hardware_mapping = "regular";
     options.rows = 32;
     options.chain_length = width / 32;
     options.parallel = height / 32;
     options.show_refresh_rate = true;
+
     m_matrix = CreateMatrixFromOptions(options, runtime);
     if (m_matrix == NULL) {
         std::cout << "Unable to create hzeller rpi matrix\n";
@@ -40,7 +42,7 @@ class HzellerRpiMatrix : public Matrix {
   }
   
   virtual void update() {   
-      m_offscreenCanvas = m_matrix->SwapOnVSync(m_offscreenCanvas);
+      m_offscreenCanvas = m_matrix->SwapOnVSync(m_offscreenCanvas, 5);
   }
   
   virtual const unsigned char* rawData(size_t& size) const {
@@ -52,7 +54,6 @@ class HzellerRpiMatrix : public Matrix {
  private:
       RGBMatrix* m_matrix;
       FrameCanvas* m_offscreenCanvas;  
-#endif
 };
 
 #endif

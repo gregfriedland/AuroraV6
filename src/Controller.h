@@ -20,7 +20,7 @@ static void timer_cb(uv_timer_t* handle);
 class Controller {
 public:
     Controller(Matrix* matrix, int width, int height, int palSize,
-        int* baseColors, int numBaseColors, int baseColorsPerPalette,
+        int* baseColors, int numBaseColors, int baseColorsPerPalette, float gamma,
         bool layoutLeftToRight, string startDrawerName,
         int drawerChangeInterval, Camera* camera, FaceDetect* faceDetect);
 

@@ -29,6 +29,7 @@ typedef enum {
 #define CAMERA_FPS 0
 #define FACEDETECT_FPS 0
 #define MATRIX_TYPE HZELLER_RPI_MATRX
+#define GAMMA 3.0
 
 static Controller* controller;
 
@@ -79,7 +80,7 @@ int main(int argc, char** argv) {
     }
 
     controller = new Controller(matrix, WIDTH, HEIGHT, PAL_SIZE, 
-        baseColors, BASE_COLORS_SIZE, BASE_COLORS_PER_PALETTE,
+	baseColors, BASE_COLORS_SIZE, BASE_COLORS_PER_PALETTE, GAMMA,
         LAYOUT_LEFT_TO_RIGHT, startDrawer, drawerChangeInterval,
         camera, faceDetect);
     // controller->start(1000 / FPS);
@@ -87,15 +88,15 @@ int main(int argc, char** argv) {
     signal(SIGINT, sigHandler);
     signal(SIGKILL, sigHandler);
 
-    std::chrono::milliseconds sleepMs{5};
-    uint32_t lastUpdateTime = 0;
+    // std::chrono::milliseconds sleepMs{5};
+    // uint32_t lastUpdateTime = 0;
     while(!interrupted) {
-        auto now = duration_cast<std::chrono::milliseconds>(steady_clock::now().time_since_epoch()).count();
-        if (now - lastUpdateTime > 1000 / FPS) {
+        // auto now = duration_cast<std::chrono::milliseconds>(steady_clock::now().time_since_epoch()).count();
+        // if (now - lastUpdateTime > 1000 / FPS) {
             controller->loop();
-            lastUpdateTime = now;
-        }
-        std::this_thread::sleep_for(sleepMs);
+            // lastUpdateTime = now;
+        // }
+        // std::this_thread::sleep_for(sleepMs);
     }
 
     std::cout << "Interrupted by signal\n";

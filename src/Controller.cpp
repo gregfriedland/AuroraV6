@@ -15,13 +15,13 @@ static void timer_cb(uv_timer_t* handle) {
 }
 
 Controller::Controller(Matrix* matrix, int width, int height, int palSize,
-    int* baseColors, int numBaseColors, int baseColorsPerPalette,
+    int* baseColors, int numBaseColors, int baseColorsPerPalette, float gamma,
     bool layoutLeftToRight, string startDrawerName,
     int drawerChangeInterval, Camera* camera, FaceDetect* faceDetect)
 : m_matrix(matrix), m_width(width), m_height(height), m_palSize(palSize),
   m_layoutLeftToRight(layoutLeftToRight),
   m_startDrawerName(startDrawerName), 
-  m_palettes(palSize, baseColors, numBaseColors, baseColorsPerPalette),
+  m_palettes(palSize, baseColors, numBaseColors, baseColorsPerPalette, gamma),
   m_camera(camera), m_faceDetect(faceDetect),
   m_currDrawer(NULL), m_drawerChangeTimer(drawerChangeInterval),
   m_fpsCounter(5000, "Controller")

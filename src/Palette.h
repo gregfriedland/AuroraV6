@@ -8,7 +8,7 @@
 
 class Palettes {
 public:
-    Palettes(int palSize, int* baseColors, int numBaseColors, int baseColorsPerPalette);
+    Palettes(int palSize, int* baseColors, int numBaseColors, int baseColorsPerPalette, float gamma);
 
     int size();
 
@@ -19,6 +19,7 @@ private:
     int* m_baseColors;
     int m_numBaseColors;
     int m_baseColorsPerPalette;
+    unsigned char m_gammaTable[256];
 };
 
 #endif
