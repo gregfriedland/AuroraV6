@@ -78,17 +78,17 @@ else:
   PLOT_BANDS = range(100)
 params = FindBeatParams(120, 6, minOnsetsPreGroup=15, minOnsetsGroup=7, beatHoldTime=0.25, beatWaitTime=0.25,
                         logScale=True, numFrames=940, energyScale=6, bundleSize=1,
-                        avgWindow=3, derivDist=3, derivActions=["sum", "increasing"], onsetCheck=None, sensitivity=3,
+                        avgWindow=3, derivDist=3, derivActions=["sum"], onsetActions=[], onsetCheck=None, sensitivity=3,
                         onsetWait=5)
 
 
 if PLOT_GROUPS:
   PARAM_COLORS = OrderedDict([#("energy",(0,128,0)),
-                            ("derivCutoffE",(0,255,255)),
-                            ("onset",(255,0,0)),
-                            ("beat",(255,255,255)),
-                            ("meanE",(0,0,255)),
-                            ("derivE",(255,255,0)),
+                            ("derivCutoffE",(0,255,255)),  # cyan
+                            ("onset",(255,0,0)),           # red
+                            ("beat",(255,255,255)),        # white
+                            ("meanE",(0,0,255)),           # blue
+                            ("derivE",(255,255,0)),        # yellow
                             ])
 else:
   PARAM_COLORS = OrderedDict([("onset",(255,0,0)),

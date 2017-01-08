@@ -44,38 +44,36 @@ class MovingStd(object):
     return numpy.sqrt(self.var)
 
 
-
 def chunks(l, n):
   """ Yield successive n-sized chunks from l. """
   for i in xrange(0, len(l), n):
     yield l[i:i+n]
 
 
-
-
 class FindBeatParams(object):
   def __init__(self, numCalcBands, numGroupBands, **kwargs):
-    self.numCalcBands = numCalcBands
-    self.numGroupBands = numGroupBands
+    self.numCalcBands = numCalcBands    # total bands to calculate (if logScale, each band corresponds to a variable number of fundamental bands)
+    self.numGroupBands = numGroupBands  # num bands after grouping
     self.minOnsetsGroup = 1    # how many onests needed within groups
     self.minOnsetsOut = 1      # how many onsets needed after grouping
     self.minOnsetsPreGroup = 1 # how many total onsets needed before grouping (applied first)
-    self.beatHoldTime = 0.25
-    self.beatWaitTime = 0.4
-    self.avgWindow = 3
-    self.stdAlpha = 0.01 # weight of contribution of new values to exponentionally weighted moving std (lower means slower decay of previous value)
-    self.derivDist = 2
+    self.beatHoldTime = 0.25   # how long to hold each beat for
+    self.beatWaitTime = 0.4    # how long to wait before the next beat is allowed
+    self.avgWindow = 3         # window size for calculating initial ma
+    self.stdAlpha = 0.01 # derivE weight of contribution of new values to exponentionally weighted moving std (lower means slower decay of previous value)
+    self.derivDist = 2   # how many steps back to look when calculating the deriv (ignored for sum?)
     self.derivActions = []
+    self.onsetActions = []
     self.fftWindow = None
     self.logScale = True
-    self.sensitivity = 3
+    self.sensitivity = 3  # cutoff = sensitivity * std dev; higher value means fewer onsets
     #self.onsetCheck = None
-    self.energyScale = 7
+    self.energyScale = 7 # scale energies down by 1/scale to keep them in the right range
     self.onsetWait = 0 # how many cycles to wait before the next onset is allowed
     
     self.numFrames = 1024
     self.sampleRate = 44100
-    self.bundleSize = 1
+    self.bundleSize = 1 # not used
 
     self.showBands = range(self.numGroupBands)
     self.__dict__.update(kwargs)
@@ -277,6 +275,10 @@ class FindBeats(object):
 
     derivCutoffEs = self.params.sensitivity * stdDerivEs
     onsets = derivEs > derivCutoffEs
+
+    if "neighbors3" in self.params.onsetActions:
+      # onsets are considered only if both adjacent bands have onsets too
+      onsets = (numpy.roll(onsets, -1, axis=0) + onsets + numpy.roll(onsets, 1, axis=0)) >= 3
     
     self.onsets.append(onsets)
 
