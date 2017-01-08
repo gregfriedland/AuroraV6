@@ -3,10 +3,11 @@
 
 #include "ReactionDiffusion.h"
 
+class Audio;
 
 class GrayScottDrawer : public ReactionDiffusionDrawer {
 public:
-    GrayScottDrawer(int width, int height, int palSize);
+    GrayScottDrawer(size_t width, size_t height, size_t palSize, Audio* audio);
 
     virtual void reset();
 

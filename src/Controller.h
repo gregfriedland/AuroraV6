@@ -5,8 +5,6 @@
 #include "Palette.h"
 #include "Util.h"
 #include "Camera.h"
-#include "Matrix.h"
-#include "FaceDetect.h"
 
 #include <map>
 #include <vector>
@@ -14,6 +12,10 @@
 #include <thread>
 #include <string>
 #include <future>
+
+class Audio;
+class FaceDetect;
+class Matrix;
 
 typedef enum {
     HZELLER_RPI_MATRIX,
@@ -40,11 +42,13 @@ struct ControllerSettings {
     int m_faceVideoDrawerTimeout;
     int m_faceDetectFps;
     CameraSettings m_cameraSettings;
+    bool m_audioOn;
 };
 
 class Controller {
 public:
-    Controller(Matrix* matrix, const ControllerSettings& settings, const std::vector<int>& baseColors, Camera* camera, FaceDetect* faceDetect);
+    Controller(Matrix* matrix, const ControllerSettings& settings, const std::vector<int>& baseColors,
+        Camera* camera, FaceDetect* faceDetect, Audio* audio);
 
     ~Controller();
 
@@ -83,6 +87,8 @@ private:
     bool m_stop;
     std::thread m_thread;
     std::future<void> m_drawFuture;
+
+    Audio* m_audio;
 };
 
 #endif

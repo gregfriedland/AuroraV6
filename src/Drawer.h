@@ -41,6 +41,14 @@ public:
 
 	virtual ~Drawer() {}
 	
+	void fillRect(int* colIndices, size_t x, size_t y, size_t w, size_t h, size_t colIndex) {
+	    for (size_t yy = y; yy < y + h; ++yy) {
+		    for (size_t xx = x; xx < x + w; ++xx) {
+		    	colIndices[xx + yy * m_width] = colIndex;
+		    }
+		}
+	}
+
 protected:
 	std::string m_name;
 	int m_width, m_height, m_palSize;

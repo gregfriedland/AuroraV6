@@ -1,11 +1,16 @@
 #include "Controller.h"
+#include "Audio.h"
 #include "Palette.h"
 #include "AlienBlob.h"
 #include "Bzr.h"
 #include "GrayScott.h"
 #include "GinzburgLandau.h"
+#include "KeyboardAudio.h"
 #include "Off.h"
 #include "Video.h"
+#include "Matrix.h"
+#include "FaceDetect.h"
+#include "Audio.h"
 #include "Util.h"
 #include <iostream>
 #include <stdlib.h>
@@ -57,6 +62,8 @@ ControllerSettings::ControllerSettings(const std::string& configFilename) {
         m_cameraSettings.m_screenWidth = j["width"];
         m_cameraSettings.m_screenHeight = j["height"];
         m_cameraSettings.m_fps = j["camera"]["fps"];
+
+        m_audioOn = j["useAudio"];
     } catch(std::exception e) {
         std::cerr << "Error while parsing json config file: " << e.what() << std::endl;
         exit(1);
@@ -64,11 +71,12 @@ ControllerSettings::ControllerSettings(const std::string& configFilename) {
 }
 
 Controller::Controller(Matrix* matrix, const ControllerSettings& settings, const std::vector<int>& baseColors,
-                       Camera* camera, FaceDetect* faceDetect)
+                       Camera* camera, FaceDetect* faceDetect, Audio* audio)
 : m_matrix(matrix), m_settings(settings), m_camera(camera), m_faceDetect(faceDetect),
   m_palettes(m_settings.m_palSize, baseColors, m_settings.m_baseColorsPerPalette, m_settings.m_gamma),
-  m_currDrawer(NULL), m_fpsCounter(2000, "Controller"),
-  m_drawerChangeTimer(m_settings.m_drawerChangeInterval) {
+  m_currDrawer(NULL), m_fpsCounter(20000, "Controller"),
+  m_drawerChangeTimer(m_settings.m_drawerChangeInterval),
+  m_audio(audio) {
 
     m_currPalIndex = random2() % m_palettes.size();
     m_colIndicesSize = m_settings.m_width * m_settings.m_height;
@@ -92,11 +100,19 @@ void Controller::init() {
         } else if (drawerName == "Bzr") {
             m_drawers.insert(std::make_pair("Bzr", new BzrDrawer(m_settings.m_width, m_settings.m_height, m_settings.m_palSize, m_camera)));
         } else if (drawerName == "GrayScott") {
-            m_drawers.insert(std::make_pair("GrayScott", new GrayScottDrawer(m_settings.m_width, m_settings.m_height, m_settings.m_palSize)));
+            m_drawers.insert(std::make_pair("GrayScott", new GrayScottDrawer(m_settings.m_width, m_settings.m_height, m_settings.m_palSize, m_audio)));
         } else if (drawerName == "GinzburgLandau") {
-            m_drawers.insert(std::make_pair("GinzburgLandau", new GinzburgLandauDrawer(m_settings.m_width, m_settings.m_height, m_settings.m_palSize)));
+            m_drawers.insert(std::make_pair("GinzburgLandau", new GinzburgLandauDrawer(m_settings.m_width, m_settings.m_height, m_settings.m_palSize, m_audio)));
+        } else if (drawerName == "KeyboardAudio") {
+            m_drawers.insert(std::make_pair("KeyboardAudio", new KeyboardAudioDrawer(m_settings.m_width, m_settings.m_height, m_settings.m_palSize, m_audio)));
         }
     }
+
+    if (m_drawers.size() == 0) {
+        std::cerr << "No drawers loaded\n";
+        exit(1);
+    }
+
     if (m_camera != NULL)
         m_drawers.insert(std::make_pair("Video", new VideoDrawer(m_settings.m_width, m_settings.m_height, m_settings.m_palSize, m_camera)));
     m_drawers.insert(std::make_pair("Off", new OffDrawer(m_settings.m_width, m_settings.m_height, m_settings.m_palSize)));

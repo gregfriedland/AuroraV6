@@ -1,8 +1,8 @@
 #include <map>
 #include <vector>
-
-#include "GrayScott.h"
 #include <algorithm>
+#include "GrayScott.h"
+#include "Audio.h"
 
 #define MAX_ROLLING_MULTIPLIER (2.0 / (35 * 5 + 1))
 #define NUM_INIT_ISLANDS 5
@@ -64,8 +64,8 @@ public:
 };
 
 
-GrayScottDrawer::GrayScottDrawer(int width, int height, int palSize)
-: ReactionDiffusionDrawer("GrayScott", width, height, palSize) {
+GrayScottDrawer::GrayScottDrawer(size_t width, size_t height, size_t palSize, Audio* audio)
+: ReactionDiffusionDrawer("GrayScott", width, height, palSize, audio) {
     m_colorIndex = 0;
     m_settings.insert(std::make_pair("speed",10));
     m_settings.insert(std::make_pair("colorSpeed",0));

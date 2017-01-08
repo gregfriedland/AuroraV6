@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "GinzburgLandau.h"
+#include "Audio.h"
 #include <algorithm>
 
 #define MAX_ROLLING_MULTIPLIER (2.0 / (35 * 5 + 1))
@@ -76,8 +77,8 @@ public:
 };
 
 
-GinzburgLandauDrawer::GinzburgLandauDrawer(int width, int height, int palSize)
-: ReactionDiffusionDrawer("GinzburgLandau", width, height, palSize) {
+GinzburgLandauDrawer::GinzburgLandauDrawer(int width, int height, int palSize, Audio* audio)
+: ReactionDiffusionDrawer("GinzburgLandau", width, height, palSize, audio) {
     m_colorIndex = 0;
     m_settings.insert(std::make_pair("speed",10));
     m_settings.insert(std::make_pair("colorSpeed",0));

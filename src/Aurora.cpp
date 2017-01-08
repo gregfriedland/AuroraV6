@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <thread>
 #include "Matrix.h"
+#include "Audio.h"
 #ifdef __arm__
     #include "HzellerRpiMatrix.h"
     #include "SerialMatrix.h"
@@ -64,6 +65,14 @@ int main(int argc, char** argv) {
             break;
     }
 
+    // start audio
+    Audio *audio = nullptr;
+    if (settings.m_audioOn) {
+        AudioSettings audioSettings;
+        audio = new Audio(audioSettings);
+        audio->start();
+    }
+
 	// start camera
     Camera *camera = nullptr;
     if (settings.m_cameraSettings.m_fps > 0) {
@@ -79,7 +88,7 @@ int main(int argc, char** argv) {
     }
 
     settings.m_baseColorsPerPalette = BASE_COLORS_PER_PALETTE;
-    controller = new Controller(matrix, settings, baseColors, camera, faceDetect);
+    controller = new Controller(matrix, settings, baseColors, camera, faceDetect, audio);
 
     // do it in the main thread so we can optionally display the opencv window
     while (true) {

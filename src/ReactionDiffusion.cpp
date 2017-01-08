@@ -4,14 +4,15 @@
 #include "ReactionDiffusion.h"
 #include "Drawer.h"
 #include "Util.h"
+#include "Audio.h"
 #include <algorithm>
 
 #define MAX_ROLLING_MULTIPLIER (2.0 / (35 * 5 + 1))
 #define NUM_INIT_ISLANDS 5
 #define ISLAND_SIZE 20
 
-ReactionDiffusionDrawer::ReactionDiffusionDrawer(const std::string& name, int width, int height, int palSize)
-: Drawer(name, width, height, palSize), m_colorIndex(0) {
+ReactionDiffusionDrawer::ReactionDiffusionDrawer(const std::string& name, int width, int height, int palSize, Audio* audio)
+: Drawer(name, width, height, palSize), m_colorIndex(0), m_audio(audio) {
     for (size_t q = 0; q < 2; ++q) {
         m_u[q] = new Array2D<float>(width, height);
         m_v[q] = new Array2D<float>(width, height);
@@ -69,8 +70,10 @@ void ReactionDiffusionDrawer::draw(int* colIndices) {
     Drawer::draw(colIndices);
 
     float zoom = 1;
+    size_t speed = m_speed; //m_audio != nullptr && m_audio->currentNote().m_freq == 0 ? 0 : m_speed;
+    //std::cout << "freq=" << m_audio->currentNote().m_freq <<" speed=" << speed << std::endl;
 
-    for (size_t f = 0; f < m_speed; ++f) {
+    for (size_t f = 0; f < speed; ++f) {
        	// std::cout << *m_v[m_q] << std::endl;
 
         for (size_t y = 1; y < m_height - 1; ++y) {

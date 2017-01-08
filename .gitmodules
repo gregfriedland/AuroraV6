@@ -7,3 +7,9 @@
 [submodule "rpi-rgb-led-matrix"]
 	path = rpi-rgb-led-matrix
 	url = https://github.com/hzeller/rpi-rgb-led-matrix.git
+[submodule "aubio"]
+	path = aubio
+	url = https://github.com/aubio/aubio.git
+[submodule "vamp-plugin-sdk"]
+	path = vamp-plugin-sdk
+	url = https://github.com/c4dm/vamp-plugin-sdk.git

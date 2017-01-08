@@ -7,6 +7,8 @@
 #include <sstream>
 #include <ostream>
 
+class Audio;
+
 #ifdef __arm__
     #include <arm_neon.h>
     using RDType = float32x4_t;
@@ -57,7 +59,7 @@ public:
 
 class ReactionDiffusionDrawer : public Drawer {
 public:
-    ReactionDiffusionDrawer(const std::string& name, int width, int height, int palSize);
+    ReactionDiffusionDrawer(const std::string& name, int width, int height, int palSize, Audio* audio);
 
     virtual ~ReactionDiffusionDrawer();
 
@@ -78,6 +80,7 @@ protected:
     float m_scale;
     UVUpdater<false>* m_uvUpdaterInternal;
     UVUpdater<true>* m_uvUpdaterBorder;
+    Audio* m_audio;    
 };
 
 
