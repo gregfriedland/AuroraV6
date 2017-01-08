@@ -19,16 +19,6 @@ def ma(prev, new, n):
 def ema(prev, new, a):
   return a*prev + (1 - a) * new
 
-#def triangle_wave(length, amplitude):
-#  mid = (length+1)/2
-#  rampUp = np.linspace(0, amplitude, mid)
-#
-#  a = numpy.array.zeros(length, numpy.float32)
-#  a[:mid] = rampUp
-#  a[mid:] = rampUp[::-1]
-#
-#  return a
-
 def ramp(x, maxx, maxy):
   # boundaries val=0: return=0; val=length/4: return amplitude/2; val=length: return 0
   peakx = maxx/2.0
@@ -316,16 +306,11 @@ class FindBeats(object):
       enoughOnsets = onsets & (numOnsets >= minOnsets)
   
     beats = numpy.zeros(onsets.shape, numpy.bool)
-    #print "pyonsets", onsets
-    #print "pybeats1", beats
     beats[holding] = True
-    #print "pybeats2", beats
     waitingNotHolding = ~holding & waiting
     beats[waitingNotHolding] = False
-    #print "pybeats3", beats
     enoughOnsetsNotWaitingNotHolding = ~holding & ~waiting & enoughOnsets
     beats[enoughOnsetsNotWaitingNotHolding] = True
-    #print "pybeats4", beats
     lastBeatTimes[enoughOnsetsNotWaitingNotHolding] = currentTime
 
     return beats

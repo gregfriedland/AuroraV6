@@ -1,6 +1,5 @@
 PLOT = True
 PLOT_GROUPS = True
-USE_CYTHON = False
 CYTHON_COMPARE = False
 USE_PYXIMPORT = False
 
