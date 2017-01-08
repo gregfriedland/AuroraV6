@@ -6,7 +6,8 @@
 #include <array>
 
 // #define USE_VAMP
-#define USE_AUBIO
+// #define USE_AUBIO
+#define USE_FINDBEATS
 
 #ifdef USE_AUBIO
 	#include <aubio.h>
@@ -14,6 +15,8 @@
 	#define VAMP_PLUGIN "qm-vamp-plugins:qm-transcription"
 	// #define VAMP_PLUGIN "vamp-aubio:aubionotes"
 	#include "VampPluginHost.h"
+#elif defined(USE_FINDBEATS)
+	#include "FindBeats.h"
 #endif
 
 // Audio class for managing the audio device and doing note detection
@@ -59,6 +62,8 @@ class Audio {
 #elif defined(USE_VAMP)
 	float* m_stepBuffer;
 	VampPluginHost* m_vampPluginHost;
+#elif defined(USE_FINDBEATS)
+	FindBeats<3>
 #endif
 
     PaStream* m_paStream;

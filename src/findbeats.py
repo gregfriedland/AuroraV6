@@ -75,6 +75,13 @@ def analyzeAudio(audioArray, numBands):
 
     return outLog
 
+def findBeats(logEnergies):
+    for b in range(len(logEnergies)):
+        # find rolling mean and add it to the history
+        # find median and MAD of historical means
+        # calculate cutoff as function of median + mad * factor
+        # beat if above cutoff
+
 if __name__ == "__main__":
     pg.init()
     pg.display.set_caption(CAPTION)

@@ -38,6 +38,24 @@ inline int mapValue(int x, int in_min, int in_max, int out_min, int out_max) {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+inline float constrainValue(float x, float minimum, float maximum) {
+	return std::min(maximum, std::max(minimum, x));
+}
+
+template <typename T>
+inline std::vector<T> logspace(T start, T stop, size_t num) {
+	std::vector<T> vals;
+
+	float exp = (std::log(stop) - std::log(start)) / num;
+
+	for (size_t i = 0, float val = start; i < num - 1; ++i) {
+		vals.push_back((T)val);
+		val = std::power(val, exp);
+	}
+	vals.push_back(stop);
+	return vals;
+}
+
 inline unsigned long millis() {
 	/* struct timeval tv; */
 
