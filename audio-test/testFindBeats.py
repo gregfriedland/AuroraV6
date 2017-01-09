@@ -1,27 +1,52 @@
 PLOT = True
 PLOT_GROUPS = True
-CYTHON_COMPARE = False
-USE_PYXIMPORT = False
 
 import sys, time, numpy
 if PLOT: import pygame
 
 from AudioInput import AudioInput
 from FindBeats import FindBeatParams
+from FindBeats import FindBeats
 from collections import OrderedDict
 import os
 
-if USE_PYXIMPORT:
-  import pyximport
-  pyximport.install(inplace=True)
+def loadSound(filename, sampleRate, channels):
+    FFMPEG_BIN = "ffmpeg"
+    command = [ FFMPEG_BIN,
+            '-i', filename,
+            '-f', 's16le',
+            '-acodec', 'pcm_s16le',
+            '-ar', str(sampleRate),
+            '-ac', str(channels),
+            '-']
+    pipe = sp.Popen(command, stdout=sp.PIPE, bufsize=2**8)
 
-from FindBeats import FindBeats
-# from AuroraViz.cFindBeats import FindBeats as FindBeats
-# from Timer import Timer
+    raw_audio = pipe.stdout.read() #88200*4)
 
-# if CYTHON_COMPARE:
-#   from AuroraViz.FindBeats import FindBeats
+    # Reorganize raw_audio as a Numpy array
+    audioArray = np.fromstring(raw_audio, dtype="int16")
 
+    return audioArray
+
+# pygame seems unable to play at 44100 on my laptop and
+# seems to need 22050
+def startSound(audioArray, in_sampleRate, in_channels, out_sampleRate=22050, out_channels=2):
+    print "Starting sound"
+
+    import audioop
+
+    audioArray2 = audioop.ratecv(audioArray, 2, in_channels, in_sampleRate, out_sampleRate, None)[0]
+    if out_channels == 1:
+        audioArray2 = audioop.tomono(audioArray2, 2, 0.5, 0.5)[0]
+    audioArray3 = np.frombuffer(audioArray2, np.int16)
+
+    if out_channels > 1:
+        audioArray3 = audioArray3.reshape((len(audioArray3)/out_channels,out_channels))
+
+    pg.mixer.init(frequency=out_sampleRate, size=-16, channels=out_channels)
+#    if DEBUG: print pg.mixer.get_init()
+    sound = pg.sndarray.make_sound(audioArray3)
+    playing = sound.play()
 
 # songs:
 # 1) hey ya
@@ -109,21 +134,11 @@ if __name__ == "__main__":
     display = pygame.display.set_mode((WIDTH, HEIGHT))
     display.fill((0,0,0))
 
+  sndFn = "" if len(sys.argv) == 1 else sys.argv[1]
   audioInput = AudioInput(numFrames=params.numFrames, sampleRate=params.sampleRate, bundleSize=params.bundleSize)
-  audioInput.start()
+  audioInput.start(sndFn)
 
-  # if CYTHON_COMPARE:
-  #   fbpy = FindBeats(params)
   fb = FindBeats(params)
-
-  #data = audioInput.get()
-  #beatResultsGroup, beatResults = fb.findBeats(data)
-  #print "Frequencies:", beatResultsGroup["freq"]
-
-#  if CYTHON_COMPARE:
-#    beatResultsGroupPy, beatResultsPy = fbpy.findBeats(data)
-#    print "FrequenciesPy:", beatResultsGroupPy["freq"].astype(int)
-
 
   panelHeight = HEIGHT/len(PLOT_BANDS)
   lastBeatResults = None
@@ -140,36 +155,6 @@ if __name__ == "__main__":
       beatResults = beatResultsGroup
     else:
       beatResults = beatResultsAll
-
-    if CYTHON_COMPARE:
-      beatResultsGroupPy, beatResultsAllPy = fbpy.findBeats(data)
-
-      numpy.set_printoptions(suppress=False, precision=3, linewidth=150)
-      allParams = ["bandMap", "freq", "fft", "energy", "meanE", "derivE", "stdDerivE", "derivCutoffE", "onset", "beat", "lastBeatTime"]
-      groupParams = ["onset", "beat", "lastBeatTime"]
-
-      for type, params, beatResults, beatResultsPy in \
-          zip(["All", "Group"], [allParams, groupParams],
-          [beatResultsAll, beatResultsGroup],
-          [beatResultsAllPy, beatResultsGroupPy]):
-        print "#####", type
-        for param in params:
-          c, p = beatResults[param], beatResultsPy[param]
-          #if c.dtype == numpy.bool: c = c.astype(numpy.uint8)
-          if p.dtype == numpy.bool: p = p.astype(numpy.uint8)
-          same = numpy.allclose(c,p, rtol=1)
-          print "param=%s same=%s numSame=%d maxDiff=%.8f" % \
-            (param, same, numpy.isclose(c,p,rtol=1).sum(),
-            numpy.absolute(c-p).max())
-          if True or not same:
-            print "cython: len=", len(c)
-            print c
-            print "python: len=", len(p)
-            print p
-        print
-      print
-
-
 
     # plot the params over time
     if not PLOT:

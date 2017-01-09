@@ -73,20 +73,29 @@ else:
       self.start()
     
     
-    def start(self):
+    def start(self, filename=""):
       p = pyaudio.PyAudio()
-      defaultDevice = p.get_default_input_device_info()
-      print "Default input device:", defaultDevice
-      print "Is desired audio format supported: ", \
-          p.is_format_supported(self.sampleRate, input_device=defaultDevice['index'],
-             input_channels=1, input_format=pyaudio.paInt16,   output_device=None, output_channels=None, output_format=None)
-                                                                         
-      self.stream = p.open(format=pyaudio.paInt16,channels=1,rate=self.sampleRate,input=True,
-                          frames_per_buffer=self.numFrames,
-                          stream_callback=lambda id,fc,ti,f: self.callback(id,fc,ti,f))
+
+      self.isFromFile = filename != ""
+      if filename == "":
+        defaultDevice = p.get_default_input_device_info()
+        print "Default input device:", defaultDevice
+        print "Is desired audio format supported: ", \
+            p.is_format_supported(self.sampleRate, input_device=defaultDevice['index'],
+               input_channels=1, input_format=pyaudio.paInt16,   output_device=None, output_channels=None, output_format=None)
+        self.stream = p.open(format=pyaudio.paInt16,channels=1,rate=self.sampleRate,input=True,
+                            frames_per_buffer=self.numFrames,
+                            stream_callback=lambda id,fc,ti,f: self.inputCallback(id,fc,ti,f))
+      else:
+        import wave
+
+        self.wf = wave.open(filename, 'rb')
+        self.stream = p.open(format=p.get_format_from_width(self.wf.getsampwidth()),
+                            channels = self.wf.getnchannels(), rate = self.wf.getframerate(), output=True)
+        # print "fileData:", len(self.fileData)
     
     
-    def callback(self, in_data, frame_count, time_info, flags):
+    def inputCallback(self, in_data, frame_count, time_info, flags):
       if flags != 0:
         if flags & pyaudio.paInputOverflow:   print "Input Overflow"
         if flags & pyaudio.paInputUnderflow:  print "Input Underflow"
@@ -103,23 +112,35 @@ else:
     def stop(self):
       self.stream.close()
     
-    #@profile
+
     def get(self):
       """ Blocks until data is received from the audio input """
-      while True:
-        n = len(self.streamData)
-        if n >= self.bundleSize:
-          break
-        time.sleep(0.003)
-      
+      if not self.isFromFile:
+        while True:
+          n = len(self.streamData)
+          if n >= self.bundleSize:
+            break
+          time.sleep(0.003)
       
       with self.lock:
-        data = self.streamData[:self.bundleSize]
-        self.streamData = []
+        if self.isFromFile:
+          data = self.wf.readframes(self.numFrames)
+        else:
+          data = self.streamData[:self.bundleSize]
+          self.streamData = [] #self.streamData[self.bundleSize:]
+
+      if self.isFromFile:
+        if data != "":
+          self.stream.write(data)
+          # print len(data)
+        data = numpy.fromstring(data,dtype=numpy.int16)
+        if self.wf.getnchannels() == 2:
+          data = data[::2]
+        # print "data:", data.shape
+      else:
+        data = numpy.concatenate(data)
       
-      data = numpy.concatenate(data)
-      #print "##### Data (%d bundles: %d): %.3f" % (n, data.shape[0], time.time() - self.lastGetTime)
+      # print "##### Data (%d bundles: %d): %.3f" % (n, data.shape[0], time.time() - self.lastGetTime)
       
       self.lastGetTime = time.time()
       return data
-
