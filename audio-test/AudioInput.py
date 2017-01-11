@@ -91,7 +91,7 @@ else:
 
         self.wf = wave.open(filename, 'rb')
         self.stream = p.open(format=p.get_format_from_width(self.wf.getsampwidth()),
-                            channels = self.wf.getnchannels(), rate = self.wf.getframerate(), output=True)
+                            channels = 1, rate = self.wf.getframerate(), output=True)
         # print "fileData:", len(self.fileData)
     
     
@@ -130,12 +130,12 @@ else:
           self.streamData = [] #self.streamData[self.bundleSize:]
 
       if self.isFromFile:
-        if data != "":
-          self.stream.write(data)
-          # print len(data)
         data = numpy.fromstring(data,dtype=numpy.int16)
         if self.wf.getnchannels() == 2:
           data = data[::2]
+        if data != "":
+          self.stream.write(data.tostring())
+          # print len(data)
         # print "data:", data.shape
       else:
         data = numpy.concatenate(data)
